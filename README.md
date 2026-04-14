@@ -514,37 +514,6 @@ Error: subpath: invalid mount option
 
 **Fix:** Run on native Linux.
 
-### RAG feature — not yet in v0.18.0
-
-```bash
-ramalama rag generate mydoc.txt
-```
-Output:
-
-<img src="images/image102.png" width="100%">
-
-```
-ramalama rag generate — Error: generate does not exist in v0.18.0
-```
-
-`ramalama info` shows a `RagImage` field pointing to `quay.io/ramalama/ramalama-rag:0.18` — it's planned, but the CLI isn't wired yet. That field in `ramalama info` is easy to mistake for confirmation that RAG works. It doesn't.
-
-**Manual RAG simulation works** — inject context directly in the prompt:
-
-```bash
-# Without context — hallucinated answer
-ramalama run ollama://tinyllama "What are the Four Foundations of Fedora?"
-# → "Freedom and Open Source", "Security and Privacy" — both wrong
-
-# With context injected — grounded answer
-ramalama run ollama://tinyllama "Based on this documentation: The Four Foundations \
-of Fedora are Freedom, Friends, Features, and First. Now answer: What are the Four \
-Foundations of Fedora?"
-# → All four named correctly (with minor misspelling: "Freeoms")
-```
-
-Same model, same hardware, same question. The only difference is the retrieved context. That gap between the two outputs is the entire argument for why RAG matters — and what the Outreachy project aims to automate.
-
 ### --nocontainer flag
 
 ```bash
