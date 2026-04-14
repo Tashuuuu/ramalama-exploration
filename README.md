@@ -30,14 +30,8 @@ Everything else below is the full walkthrough — setup, the five required tasks
 - ~4 GB RAM (more is better; less will hurt)
 
 **WSL2 `.wslconfig` used in this setup:**
-```ini
-[wsl2]
-memory=4GB
-processors=4
-swap=2GB
-```
 
-![.wslconfig output]()
+<img src="images/image13.png" width="30%">
 
 > The 4 GB cap gives 3.8 Gi total inside WSL2 after ~200 MB of VM/hypervisor overhead, and then ~3.4 Gi actually available at baseline after WSL2's own processes take their share. That 3.4 Gi number is the real headroom for inference.
 
@@ -67,6 +61,7 @@ Verify:
 ```powershell
 wsl --list --verbose
 ```
+Output:
 ```
 NAME          STATE   VERSION
 Ubuntu-24.04  Running 2
@@ -84,12 +79,18 @@ sudo apt install -y python3 python3-pip python3-venv podman
 Verify Podman:
 ```bash
 podman --version
-```
-```
 podman version 4.9.3
 ```
 
 **Fix a Ubuntu 24.04 Podman bug before going further.**
+
+The bug:
+
+<img src="images/image59.png" width="100%">
+
+```
+podman run hello-world before the fix — the V1/V2 registries.conf conflict error
+```
 
 Ubuntu 24.04's default Podman ships a `/etc/containers/registries.conf` that mixes V1 and V2 format entries — Podman refuses to parse it and every `pull` fails with a registry configuration error. Fix it now, before you touch any models:
 
@@ -105,22 +106,24 @@ Verify the fix works:
 ```bash
 podman run --rm docker.io/library/hello-world
 ```
-```
-Hello from Docker!
+Output:
 
-This message shows that your installation appears to be working correctly.
-...
+<img src="images/image63.png" width="100%">
+
+```
+podman run --rm hello-world after the fix — container stack confirmed healthy
 ```
 
 If you see that, the container stack is healthy. If you skip this step and go straight to pulling models, you'll hit a confusing registry parsing error that has nothing to do with RamaLama.
 
 ---
 
-## 2. Install RamaLama  *(Task 1)*
+## 2. Install RamaLama
 
 ```bash
 pip install ramalama --break-system-packages
 ```
+Output:
 ```
 Defaulting to user installation because normal site-packages is not writeable
 Collecting ramalama
@@ -144,11 +147,12 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 
 ---
 
-## 3. Verify the install  *(Task 2)*
+## 3. Verify the install
 
 ```bash
 ramalama version
 ```
+Output:
 ```
 ramalama version 0.18.0
 ```
@@ -158,6 +162,7 @@ Run `ramalama info` for the full system picture — it's more useful than it loo
 ```bash
 ramalama info
 ```
+Output:
 ```json
 {
   "Accelerator": "none",
@@ -185,13 +190,14 @@ Two things to note right away: `"Accelerator": "none"` means everything runs on 
 
 ---
 
-## 4. Pull and run your first model — Ollama transport  *(Tasks 3 and 4)*
+## 4. Pull and run your first model — Ollama transport
 
 Before pulling anything, run the dryrun. It doesn't execute — it just prints the full Podman command RamaLama would construct internally:
 
 ```bash
 ramalama --dryrun run ollama://tinyllama "What are the Four Foundations of the Fedora project?"
 ```
+Output:
 ```
 podman run \
   --label ai.ramalama.model=ollama://library/tinyllama:latest \
@@ -219,11 +225,20 @@ podman run \
 
 That's 18+ flags assembled from a single short command. Security hardening, GPU layer config (`-ngl 999` — a no-op here but enables full acceleration on machines that have a GPU), port mapping, inference parameters. You don't need to understand all of it. That's exactly the point.
 
+### Memory baseline
+
+<img src="images/image34.png" width="100%">
+
+```
+free -h before any model is loaded — 3.4 Gi available
+```
+
 ### Pull
 
 ```bash
 ramalama pull ollama://tinyllama
 ```
+Output:
 ```
 Downloading ollama://library/tinyllama:latest ...
 Trying to pull ollama://library/tinyllama:latest ...
@@ -238,6 +253,7 @@ Downloading tinyllama
 ```bash
 ramalama list
 ```
+Output:
 ```
 NAME                                    MODIFIED        SIZE
 ollama://library/tinyllama:latest       32 seconds ago  608.16 MB
@@ -248,6 +264,7 @@ ollama://library/tinyllama:latest       32 seconds ago  608.16 MB
 ```bash
 ramalama inspect ollama://tinyllama
 ```
+Output:
 ```
 tinyllama
 Path:     ~/.local/share/ramalama/store/ollama/library/tinyllama/blobs/sha256-2af3b81862c6b...
@@ -264,15 +281,29 @@ GGUF V3, little-endian, 201 tensors. This is the baseline you'll compare against
 ```bash
 ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora project?"
 ```
+Output:
+
+<img src="images/image59.png" width="100%">
+
 ```
-1. Community: Fedora prioritizes community participation as its core value.
-2. Innovation: Fedora values incorporating new technologies and advancements.
-3. Freedom: Software must be free to use, modify, and distribute.
-4. Continuous Integration: Fedora uses a continuous integration system to ensure
-   the quality and consistency of its code and documentation.
+time ramalama run — TinyLlama response with actual elapsed time
 ```
 
 The actual Four Foundations are **Freedom, Friends, Features, First**. TinyLlama got Freedom correct, mapped Community loosely to Friends, then hallucinated Innovation and Continuous Integration with the same confident tone as the correct ones. That's a 1.1B parameter model doing what 1.1B parameter models do. The hallucination problem is exactly what RAG exists to fix.
+
+### Memory during inference
+
+<img src="images/image39.png" width="100%">
+
+```
+free -h during inference — 2.2 Gi consumed, 1.2 Gi available
+```
+
+<img src="images/image40.png" width="100%">
+
+```
+free -h after container exits — memory fully reclaimed, no leaks
+```
 
 ---
 
@@ -285,6 +316,7 @@ Same model family, different registry. HuggingFace TinyLlama was chosen delibera
 ```bash
 ramalama pull huggingface://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 ```
+Output:
 ```
 Downloading hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf ...
 Trying to pull hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf ...
@@ -299,6 +331,7 @@ Downloading tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 ```bash
 ramalama list
 ```
+Output:
 ```
 NAME                                                                                                    MODIFIED        SIZE
 ollama://library/tinyllama:latest                                                                       13 minutes ago  608.16 MB
@@ -310,16 +343,17 @@ hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 ```bash
 ramalama inspect huggingface://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 ```
+Output:
 ```
 tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 Path:     ~/.local/share/ramalama/store/huggingface/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/...
 Registry: huggingface
 Version:  3
-Endian:   little
+Endianness:   little
 [201 tensors — GGUF V3 format]
 ```
 
-Both report `Registry`, `Version: 3`, `Endian: little`, and 201 tensors — the architecture is identical. The only inspect-level difference is the registry field and the storage path under `~/.local/share/ramalama/store/`. What changes at runtime is the chat template each registry bundles with the GGUF file.
+Both report `Registry`, `Version: 3`, `Endianness: little`, and 201 tensors — the architecture is identical. The only inspect-level difference is the registry field and the storage path under `~/.local/share/ramalama/store/`. What changes at runtime is the chat template each registry bundles with the GGUF file.
 
 ### Run — same prompt, same model, different result
 
@@ -327,6 +361,7 @@ Both report `Registry`, `Version: 3`, `Endian: little`, and 201 tensors — the 
 ramalama run huggingface://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf \
   "What are the Four Foundations of the Fedora project?"
 ```
+Output:
 ```
 The Four Foundation of the Fedora project are:
 1. Community: Fedora is a community project, and the community is the cornerstone.
@@ -380,6 +415,20 @@ ramalama bench ollama://tinyllama
 | Phi-2 | 2.78B | 1.67 GB | 32.78 | 13.01 | ✅ + chat token leak |
 | Phi-3-mini | 3.82B | 2.23 GB | 23.48 | 9.93 | ✅ (slow) |
 
+### Raw benchmark output
+
+<img src="images/image88.png" width="100%">
+
+```
+Raw ramalama bench output — TinyLlama via Ollama
+```
+
+<img src="images/image90.png" width="100%">
+
+```
+Raw ramalama bench output — Granite 3.1-dense:2b (bench succeeds despite interactive run failing)
+```
+
 **Rule of thumb on a 4 GB system:**
 - Under ~1.5 GB: runs comfortably, no swap
 - 1.5–2.5 GB: runs with moderate overhead — minimal swap (74 Mi for Phi-3-mini), but noticeably slower
@@ -396,9 +445,17 @@ ramalama bench ollama://tinyllama
 ramalama serve ollama://tinyllama --port 8080
 ```
 
+<img src="images/image96.png" width="100%">
+
+```
+ramalama serve startup sequence
+```
+
+<img src="images/image97.png" width="100%">
+
 Server confirms:
 ```
-main: server is listening on http://0.0.0.0:8080
+Server ready — listening on http://0.0.0.0:8080
 ```
 
 ```bash
@@ -417,15 +474,29 @@ Observed throughput via REST: **35.57 tokens/second** generation (consistent wit
 
 ## 9. Where things break (and why)
 
-### ❌ Granite 3.1-dense:2b — OOM on 4 GB
+### Granite 3.1-dense:2b — OOM on 4 GB
 
 ```bash
-ramalama pull ollama://granite3.1-dense:2b   # ✅ 1.46 GB — downloads fine
-ramalama run ollama://granite3.1-dense:2b    # ❌ times out after 180 seconds
+ramalama pull ollama://granite3.1-dense:2b   # 1.46 GB — downloads fine
+ramalama run ollama://granite3.1-dense:2b    # times out after 180 seconds
 ```
+Output:
+<img src="images/image51.png" width="100%">
 
 ```
-Error: Command 'health check of container ramalama-eZ72858khU' timed out after 180 seconds
+The 180-second timeout — each dot is one second
+```
+
+<img src="images/image52.png" width="100%">
+
+```
+Timeout error after 180 seconds — health check failed
+```
+
+<img src="images/image53.png" width="100%">
+
+```
+free -h during the Granite timeout — memory fully saturated
 ```
 
 **Why:** Granite loads its 1.46 GB weights successfully, but context window allocation fails. The `llama-server` log shows `common_init from params: failed to create context with model`. At 32 attention heads with 8 KV heads and default context length, the KV cache needs more RAM than the system has available.
@@ -434,13 +505,13 @@ Error: Command 'health check of container ramalama-eZ72858khU' timed out after 1
 
 **Fix:** Use a smaller model (TinyLlama) or increase WSL2 RAM cap.
 
-### ❌ OCI transport on WSL2
+### OCI transport on WSL2
 
 ```bash
-ramalama pull oci://quay.io/ramalama/ramalama:latest   # ✅ pulls fine
-ramalama run oci://quay.io/ramalama/ramalama:latest    # ❌ mount error
+ramalama pull oci://quay.io/ramalama/ramalama:latest   # pulls fine
+ramalama run oci://quay.io/ramalama/ramalama:latest    # mount error
 ```
-
+Output:
 ```
 Error: subpath: invalid mount option
 ```
@@ -449,13 +520,17 @@ Error: subpath: invalid mount option
 
 **Fix:** Run on native Linux.
 
-### ❌ RAG feature — not yet in v0.18.0
+### RAG feature — not yet in v0.18.0
 
 ```bash
 ramalama rag generate mydoc.txt
 ```
+Output:
+
+<img src="images/image102.png" width="100%">
+
 ```
-Error: generate does not exist
+ramalama rag generate — Error: generate does not exist in v0.18.0
 ```
 
 `ramalama info` shows a `RagImage` field pointing to `quay.io/ramalama/ramalama-rag:0.18` — it's planned, but the CLI isn't wired yet. That field in `ramalama info` is easy to mistake for confirmation that RAG works. It doesn't.
@@ -476,13 +551,17 @@ Foundations of Fedora?"
 
 Same model, same hardware, same question. The only difference is the retrieved context. That gap between the two outputs is the entire argument for why RAG matters — and what the Outreachy project aims to automate.
 
-### ❌ --nocontainer flag
+### --nocontainer flag
 
 ```bash
 ramalama --nocontainer run ollama://tinyllama "test"
 ```
+Output:
+
+<img src="images/image46.png" width="100%">
+
 ```
-Error: [Errno 2] No such file or directory: 'llama-server'
+ramalama --nocontainer run — fails immediately because llama-server only exists inside the container
 ```
 
 `llama-server` exists only inside the RamaLama container image. The containerized approach is not optional convenience — it's the delivery mechanism for the runtime itself.
@@ -511,13 +590,21 @@ Error: [Errno 2] No such file or directory: 'llama-server'
 
 | Model | During inference | Swap used | Result |
 |-------|-----------------|-----------|--------|
-| TinyLlama (608 MB) | ~2.2 Gi consumed, 1.2 Gi available | 0B | ✅ Comfortable |
-| Phi-3-mini (2.23 GB) | Runs with moderate overhead | 74 Mi | ✅ Completes successfully |
-| Granite (1.46 GB + context) | ~0.8–1.7 Gi available | 0B | ❌ Context alloc fails |
+| TinyLlama (608 MB) | ~2.2 Gi consumed, 1.2 Gi available | 0B | Comfortable |
+| Phi-3-mini (2.23 GB) | Runs with moderate overhead | 74 Mi | Completes successfully |
+| Granite (1.46 GB + context) | ~0.8–1.7 Gi available | 0B | Context alloc fails |
 
 Memory is fully reclaimed after container exit — no leaks between runs.
 
 ---
+
+### Appendix: Container Histor
+
+<img src="images/image43.png" width="100%">
+
+```
+ramalama containers — all containers created during this session with exit codes
+```
 
 ## Further reading
 
