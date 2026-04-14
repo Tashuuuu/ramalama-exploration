@@ -37,7 +37,7 @@ processors=4
 swap=2GB
 ```
 
-![.wslconfig output](image.png)
+![.wslconfig output]()
 
 > The 4 GB cap gives 3.8 Gi total inside WSL2 after ~200 MB of VM/hypervisor overhead, and then ~3.4 Gi actually available at baseline after WSL2's own processes take their share. That 3.4 Gi number is the real headroom for inference.
 
