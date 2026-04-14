@@ -283,7 +283,7 @@ ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora pro
 ```
 Output:
 
-<img src="images/image59.png" width="100%">
+<img src="images/image38.png" width="100%">
 
 ```
 time ramalama run — TinyLlama response with actual elapsed time
@@ -592,7 +592,7 @@ Memory is fully reclaimed after container exit — no leaks between runs.
 
 ---
 
-### Appendix: Container Histor
+### Appendix: Container History
 
 <img src="images/image43.png" width="100%">
 
