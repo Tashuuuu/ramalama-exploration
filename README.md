@@ -445,12 +445,6 @@ Raw ramalama bench output — Granite 3.1-dense:2b (bench succeeds despite inter
 ramalama serve ollama://tinyllama --port 8080
 ```
 
-<img src="images/image96.png" width="100%">
-
-```
-ramalama serve startup sequence
-```
-
 <img src="images/image97.png" width="100%">
 
 Server confirms:
