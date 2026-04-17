@@ -1,4 +1,4 @@
-<img width="983" height="774" alt="image_99" src="https://github.com/user-attachments/assets/376678ea-a425-4efa-ba9f-8247b77c72f9" /># ramalama-lab — run local LLMs without the headache
+# ramalama-lab — run local LLMs without the headache
 
 A systematic exploration of **RamaLama 0.18.0**: pull, run, benchmark, and serve AI models locally.
 
