@@ -114,7 +114,7 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 ramalama version
 ```
 
-![podman --version output](images/image_77.png)
+![ramalama --version output](images/image_77.png)
 
 ```bash
 ramalama info
