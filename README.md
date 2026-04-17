@@ -1,4 +1,4 @@
-# ramalama-lab — run local LLMs without the headache
+<img width="983" height="774" alt="image_99" src="https://github.com/user-attachments/assets/376678ea-a425-4efa-ba9f-8247b77c72f9" /># ramalama-lab — run local LLMs without the headache
 
 A systematic exploration of **RamaLama 0.18.0**: pull, run, benchmark, and serve AI models locally.
 
@@ -24,7 +24,7 @@ ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora pro
 - Ubuntu 24.04 LTS
 - Python 3.12+
 - Podman 4.9.3+
-- ~4 GB RAM
+- ~4 GB RAM (the more the better)
 
 **WSL2 `.wslconfig` used:**
 
@@ -88,22 +88,17 @@ Verify:
 podman run --rm docker.io/library/hello-world
 ```
 
-```
-Hello from Docker!
-...
-```
-
-<!-- screenshot: podman hello-world output -->
+![podman working output](images/image_30.png)
 
 ---
 
-## Step 2: Install RamaLama (Task 1)
+## Step 2: Install RamaLama
 
 ```bash
 pip install ramalama --break-system-packages
 ```
 
-<!-- screenshot: pip install output -->
+![install ramalama ouput](images/image_99.png)
 
 Fix PATH:
 
@@ -113,20 +108,21 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 
 ---
 
-## Step 3: Verify install (Task 2)
+## Step 3: Verify install
 
 ```bash
 ramalama version
 ```
 
-```
-ramalama version 0.18.0
-```
+![podman --version output](images/image_77.png)
 
 ```bash
 ramalama info
 ```
 
+![ramalama info output](images/image_46.png)
+
+Key fields from the JSON output:
 ```json
 {
   "Accelerator": "none",
@@ -136,11 +132,9 @@ ramalama info
 }
 ```
 
-<!-- screenshot: ramalama version and info output -->
-
 ---
 
-## Step 4: Pull and run first model — Ollama transport (Tasks 3 & 4)
+## Step 4: Pull and run first model — Ollama transport
 
 Dryrun (shows the full Podman command without executing):
 
@@ -148,7 +142,7 @@ Dryrun (shows the full Podman command without executing):
 ramalama --dryrun run ollama://tinyllama "What are the Four Foundations of the Fedora project?"
 ```
 
-<!-- screenshot: dryrun output -->
+![dryrun output](images/image_67.png)
 
 Pull:
 
@@ -156,11 +150,7 @@ Pull:
 ramalama pull ollama://tinyllama
 ```
 
-```
-Downloading ollama://library/tinyllama:latest ...
-Downloading tinyllama
-100% |████████████████████| 608.16 MB/608.16 MB 12.30 MB/s 0s
-```
+![pull ollama://tinyllama output](images/image_65.png)
 
 List:
 
@@ -168,10 +158,7 @@ List:
 ramalama list
 ```
 
-```
-NAME                                    MODIFIED        SIZE
-ollama://library/tinyllama:latest       32 seconds ago  608.16 MB
-```
+![ramalama list output](images/image_78.png)
 
 Run:
 
@@ -179,16 +166,9 @@ Run:
 ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora project?"
 ```
 
-```
-1. Community: Fedora prioritizes community participation...
-2. Innovation: Fedora values new technologies...
-3. Freedom: Software must be free to use, modify, and distribute.
-4. Continuous Integration: Fedora uses CI for quality...
-```
+![ramalama run tinyllama output](images/image_3.png)
 
-<!-- screenshot: ramalama run tinyllama output -->
-
-> Actual Four Foundations: Freedom, Friends, Features, First. TinyLlama zero of the four right, it hallucinated. But, outputs vary across runs.
+> Actual Four Foundations: Freedom, Friends, Features, First. TinyLlama got zero of the four right, it hallucinated. But, outputs vary across runs.
 
 `--nocontainer` test:
 
@@ -196,13 +176,11 @@ ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora pro
 ramalama --nocontainer run ollama://tinyllama "test"
 ```
 
-```
-Error: [Errno 2] No such file or directory: 'llama-server'
-```
+![nocontainer ollama tinyllama output](images/nocontainer.png)
 
 ---
 
-## Step 5: Different transport — HuggingFace (Task 5)
+## Step 5: Different transport — HuggingFace
 
 Pull:
 
@@ -210,10 +188,7 @@ Pull:
 ramalama pull huggingface://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 ```
 
-```
-Downloading tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
-100% |████████████████████| 637.81 MB/637.81 MB 12.89 MB/s 0s
-```
+![pull huggingface tinyllama output](images/image_6.png)
 
 List both models:
 
@@ -221,11 +196,7 @@ List both models:
 ramalama list
 ```
 
-```
-NAME                                                                                           MODIFIED        SIZE
-ollama://library/tinyllama:latest                                                              13 min ago      608.16 MB
-hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf            32 sec ago      637.81 MB
-```
+![ramalama list output](images/image_82.png)
 
 Run same prompt:
 
@@ -234,15 +205,7 @@ ramalama run huggingface://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/tinyllama-1.1b
   "What are the Four Foundations of the Fedora project?"
 ```
 
-```
-The Four Foundation of the Fedora project are:
-1. Community: Fedora is a community project...
-2. Dedication: Fedora has deep community dedication...
-3. Community Values: The project values community...
-4. Community Success: Fedora has achieved success through community...
-```
-
-<!-- screenshot: HuggingFace tinyllama run output -->
+![HuggingFace tinyllama run output](images/image_41.png)
 
 > Same model weights, completely different answer — different chat template packaging between the two registries.
 
@@ -263,10 +226,7 @@ The Four Foundation of the Fedora project are:
 ramalama run oci://quay.io/ramalama/ramalama:latest
 ```
 
-```
-Error: subpath: invalid mount option
-Error: Failed to serve model ramalama
-```
+![ramalama run oci output](images/image_18.png)
 
 ---
 
@@ -274,9 +234,9 @@ Error: Failed to serve model ramalama
 
 | Command                                                       | Result             |
 |---------------------------------------------------------------|--------------------|
-| `ramalama pull ollama://granite3.1-dense:2b`                  | ✅ 1.46 GB         |
-| `ramalama run ollama://granite3.1-dense:2b`                   | ❌ Timeout at 180s |
-| `ramalama run --ctx-size 512 ollama://granite3.1-dense:2b`    | ✅ Runs            |
+| `ramalama pull ollama://granite3.1-dense:2b`                  | Pulled 1.46 GB  |
+| `ramalama run ollama://granite3.1-dense:2b`                   | Timeout at 180s |
+| `ramalama run --ctx-size 512 ollama://granite3.1-dense:2b`    | Runs            |
 
 **Why the default fails:** Allocating the KV cache for the default context window on top of 1.46 GB of model weights exceeds available RAM. During the timeout, free memory was bouncing between 0.8 and 1.7 GB.
 
@@ -286,7 +246,7 @@ Error: Failed to serve model ramalama
 ramalama run --ctx-size 512 ollama://granite3.1-dense:2b "What are the Four Foundations of Fedora?"
 ```
 
-<!-- screenshot: Granite run with --ctx-size 512 -->
+![Granite run with --ctx-size 512 output](images/granite.png)
 
 ---
 
@@ -298,7 +258,7 @@ ramalama run --ctx-size 512 ollama://granite3.1-dense:2b "What are the Four Foun
 ramalama bench ollama://tinyllama
 ```
 
-<!-- screenshot: bench output -->
+![tinyllama bench output](images/image_75.png)
 
 | Model              | Params | Size    | pp512 (t/s) | tg128 (t/s) |
 |--------------------|--------|---------|-------------|-------------|
@@ -322,11 +282,12 @@ Terminal 1 — start server:
 ramalama serve ollama://tinyllama --port 8080
 ```
 
+![ramalama serve startup logs](images/image_92.png)
+![ramalama serve startup logs](images/image_19.png)
+
 ```
 main: server is listening on http://0.0.0.0:8080
 ```
-
-<!-- screenshot: ramalama serve startup logs -->
 
 Terminal 2 — query:
 
@@ -336,7 +297,7 @@ curl http://127.0.0.1:8080/v1/chat/completions \
   -d '{"model":"tinyllama","messages":[{"role":"user","content":"What is Fedora?"}]}'
 ```
 
-<!-- screenshot: curl API response -->
+![curl API response output](images/image_37.png)
 
 > OpenAI-compatible endpoint. Works with LangChain, llama_index, or any client that speaks the OpenAI chat completions API — just swap the base URL to `localhost`.
 
@@ -365,10 +326,10 @@ curl http://127.0.0.1:8080/v1/chat/completions \
 
 | Model                              | Approx. consumed | Swap  | Result         |
 |------------------------------------|------------------|-------|----------------|
-| TinyLlama (608 MB)                 | ~2.2 GB          | 0B    | ✅ Comfortable |
-| Phi-3-mini (2.23 GB)               | Moderate overhead| 74 MB | ✅             |
-| Granite (1.46 GB + default context)| Exceeds headroom | 0B    | ❌ Fails       |
-| Granite (1.46 GB + --ctx-size 512) | Fits             | 0B    | ✅             |
+| TinyLlama (608 MB)                 | ~2.2 GB          | 0B    | Comfortable |
+| Phi-3-mini (2.23 GB)               | Moderate overhead| 74 MB | Works       |
+| Granite (1.46 GB + default context)| Exceeds headroom | 0B    | Fails       |
+| Granite (1.46 GB + --ctx-size 512) | Fits             | 0B    | Works       |
 
 Memory is reclaimed after container exit — no leaks observed.
 
